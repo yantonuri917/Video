@@ -41,66 +41,67 @@
       <!-- Tempat embed video otomatis berdasarkan kode -->
       <!-- Masukkan kode video saja, contoh: ABC123 -->
       <script>
-  /* Auto-embed dengan dukungan platform + kode
+  /* Enhanced VIDEAS support via proxy (corsproxy.io)
+     WARNING: Depends on external proxy availability.
      Format URL:
      /videy/kode
      /videas/kode
-     /twimg/path/video.mp4
-     Mendukung trailing slash dan auto-clean path.
+     /twimg/path/file.mp4
   */
 
-  // Ambil path dan buang item kosong (termasuk trailing slash)
   const parts = window.location.pathname.split('/').filter(Boolean);
-
   let platform = parts[0] || null;
   let videoCode = parts.slice(1).join('/');
-
-  // Buang trailing slash jika ada
   if (videoCode.endsWith('/')) videoCode = videoCode.slice(0, -1);
 
-  // Base URL untuk tiap platform (2 opsi untuk VIDEAS)
   const sources = {
     videy: "https://videy.co/embed/",
-    videas: [
-      "https://videas.co/embed/", 
-      "https://videas.co/v/"
-    ],
     twimg: "https://video.twimg.com/"
   };
 
-  if (!platform || !sources[platform]) {
-    document.write("<p style='text-align:center;color:red'>Platform tidak dikenali.<br>Gunakan /videy/kode, /videas/kode, atau /twimg/kode.</p>");
-  } else if (!videoCode) {
-    document.write("<p style='text-align:center;color:red'>Kode video tidak ditemukan setelah platform.</p>");
-  } else {
-    // Jika VIDEAS → coba embed pertama, jika gagal user bisa pilih kedua
-    if (platform === "videas") {
-      const try1 = sources.videas[0] + videoCode;
-      const iframe = `
-        <iframe src="${try1}" allowfullscreen style="width:100%;height:420px;border:none;border-radius:8px"></iframe>
-        <p style='font-size:13px;color:#666;text-align:center;margin-top:8px'>Jika tidak tampil, coba versi kedua:<br><code>${sources.videas[1] + videoCode}</code></p>
-      `;
-      document.write(iframe);
-    }
+  async function loadVideas(code) {
+    const embedURL = `https://videas.co/embed/${code}`;
+    const proxyURL = `https://corsproxy.io/?${encodeURIComponent(embedURL)}`;
 
-    // Untuk TWIMG (video langsung)
-    else if (platform === "twimg") {
-      const fullUrl = sources.twimg + videoCode;
+    try {
+      const html = await fetch(proxyURL).then(r => r.text());
+      const match = html.match(/https:[^'"]+\.mp4/);
+
+      if (!match) {
+        document.write(`<p style='color:red;text-align:center'>Gagal mengambil file video dari VIDEAS.</p>`);
+        return;
+      }
+
+      const mp4 = match[0];
       document.write(`
-        <video controls style="width:100%;border-radius:8px">
-          <source src="${fullUrl}" type="video/mp4" />
-          Browser Anda tidak mendukung video HTML5.
+        <video controls autoplay style="width:100%;border-radius:8px">
+          <source src="${mp4}" type="video/mp4" />
         </video>
+        <p style='font-size:13px;text-align:center;color:#666'>Direct file loaded.</p>
       `);
+    } catch (err) {
+      document.write(`<p style='color:red;text-align:center'>Proxy error: ${err}</p>`);
     }
+  }
 
-    // Platform lain (embed biasa)
-    else {
-      const fullUrl = sources[platform] + videoCode;
-      document.write(`
-        <iframe src="${fullUrl}" allowfullscreen style="width:100%;height:420px;border:none;border-radius:8px"></iframe>
-      `);
-    }
+  if (!platform) {
+    document.write("<p style='color:red;text-align:center'>Platform tidak ditemukan.</p>");
+  } else if (platform === "videas") {
+    loadVideas(videoCode);
+  } else if (platform === "twimg") {
+    const fullUrl = sources.twimg + videoCode;
+    document.write(`
+      <video controls style="width:100%;border-radius:8px">
+        <source src="${fullUrl}" type="video/mp4" />
+      </video>
+    `);
+  } else if (sources[platform]) {
+    const fullUrl = sources[platform] + videoCode;
+    document.write(`
+      <iframe src="${fullUrl}" allowfullscreen style="width:100%;height:420px;border:none;border-radius:8px"></iframe>
+    `);
+  } else {
+    document.write("<p style='color:red;text-align:center'>Platform tidak dikenali.</p>");
   }
 </script>
       <!-- Contoh YouTube: -->
