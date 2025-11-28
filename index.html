@@ -35,15 +35,70 @@
 </head>
 <body>
   <div class="container">
-    <h1>hot🔥🔥💦</h1>
+    <h1>Judul Video Anda</h1>
 
     <div class="video-wrapper">
-      <div style="padding:56.25% 0 0 0;position:relative;"><iframe width="100%" height="100%" src="https://app.videas.fr/embed/media/807fd19d-028d-45a8-a8c6-2db8a5507d1b/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="true" style="position: absolute; top: 0; left: 0" referrerpolicy="unsafe-url"></iframe></div>
+      <!-- Tempat embed video otomatis berdasarkan kode -->
+      <!-- Masukkan kode video saja, contoh: ABC123 -->
+      <script>
+  /*
+    URL otomatis membaca platform + kode video
+    Format yang didukung:
+    https://site.netlify.app/videy/abc123
+    https://site.netlify.app/videas/xyz999
+    https://site.netlify.app/twimg/ext_tw_video/.../video.mp4
+  */
+
+  const path = window.location.pathname.split('/').filter(x => x);
+
+  let platform = path[0] || null;
+  let videoCode = path.slice(1).join('/'); // sisanya adalah kode/video path
+
+  const sources = {
+    videy: "https://videy.co/embed/",
+    videas: "https://videas.co/embed/",
+    twimg: "https://video.twimg.com/"
+  };
+
+  if (!platform || !sources[platform]) {
+    document.write("<p style='text-align:center;color:red'>Platform tidak ditemukan. Gunakan /videy/kode atau /videas/kode atau /twimg/kode.</p>");
+  } else if (!videoCode) {
+    document.write("<p style='text-align:center;color:red'>Kode video tidak ditemukan setelah platform.</p>");
+  } else {
+    const fullUrl = sources[platform] + videoCode;
+
+    // Jika twimg → gunakan video player HTML5
+    if (platform === "twimg") {
+      document.write(`
+        <video controls style="width:100%;border-radius:8px">
+          <source src="${fullUrl}" type="video/mp4">
+          Browser Anda tidak mendukung video HTML5.
+        </video>
+      `);
+    } else {
+      document.write(`
+        <iframe
+          src="${fullUrl}"
+          allowfullscreen
+          style="width:100%;height:420px;border:none;border-radius:8px">
+        </iframe>
+      `);
+    }
+  }
+</script>
+      <!-- Contoh YouTube: -->
+      <!-- <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen></iframe> -->
     </div>
 
     <p>
       Tulis deskripsi singkat video atau informasi tambahan di sini.
     </p>
+
+    <h3>Sumber Video</h3>
+    <ul id="sumber-video">
+      <li>Masukkan sumber / kredit video di sini</li>
+      <!-- Tambahkan item lain sesuai kebutuhan -->
+    </ul>
   </div>
 </body>
 </html>
